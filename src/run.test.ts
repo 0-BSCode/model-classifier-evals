@@ -137,3 +137,16 @@ test('estimate uses past token averages per model, else a conservative assumptio
   assert.ok(Math.abs(small.usd - (15 * 11000) / 1e6) < 1e-12);
   assert.equal(e.arms.find((a) => a.model === 'a/big')!.basis, 'assumed');
 });
+
+test('estimate counts dated snapshot ids as the same model, but not other models sharing a prefix', () => {
+  const { m } = setup();
+  const p = prepare(m);
+  const past = [
+    rec({ item_id: 'z', arm: 'candidate', model: 'a/small-20261006' }),
+    rec({ item_id: 'z', arm: 'candidate', model: 'a/small-decisions-20261006' }),
+    rec({ item_id: 'z', arm: 'incumbent', model: 'a/bigger' }),
+  ];
+  const e = estimate(p, past);
+  assert.equal(e.arms.find((a) => a.model === 'a/small')!.basis, '1 past calls');
+  assert.equal(e.arms.find((a) => a.model === 'a/big')!.basis, 'assumed');
+});

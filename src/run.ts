@@ -47,7 +47,9 @@ export function estimate({ manifest: m, items, prompt }: Prepared, past: CallRec
   const perArm = items.length * m.k;
   const arms = ARMS.map((a) => {
     const model = m[a].model;
-    const seen = past.filter((r) => r.model === model && r.status !== 'error' && r.prompt_tokens != null);
+    // records may carry a dated snapshot id (e.g. `<model>-20261006`); a bare prefix match would mix models
+    const sameModel = (id: string | null) => id === model || (!!id?.startsWith(`${model}-`) && /^\d{8}$/.test(id.slice(model.length + 1)));
+    const seen = past.filter((r) => sameModel(r.model) && r.status !== 'error' && r.prompt_tokens != null);
     const avg = (f: (r: CallRecord) => number) => seen.reduce((s, r) => s + f(r), 0) / seen.length;
     const [inTok, outTok] = seen.length
       ? [avg((r) => r.prompt_tokens!), avg((r) => r.completion_tokens ?? 0)]
