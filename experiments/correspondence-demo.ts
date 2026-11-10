@@ -4,7 +4,7 @@ import type { Manifest } from '../src/types.ts';
 // Everything below is pre-registered: changing any of it makes a new experiment, not a replication.
 export default {
   name: 'correspondence-luna-vs-flash',
-  dataset: { path: 'data/correspondence.jsonl', sha256: '087c4f0339ec0bbc38291285bca9179e7bf855ce579730adb54acaa9e8962db2', draftedBy: 'anthropic/claude-opus-5.5' },
+  dataset: { path: 'data/correspondence.jsonl', sha256: '8c0068f48ac91034ac3a5ba32fa08947f3fe25d8eadda337070b8bdded063dcf', draftedBy: 'anthropic/claude-opus-5.5' },
   prompt: 'prompts/triage-v1.md',
   labels: ['general_correspondence', 'rfi', 'variation_request', 'early_warning', 'notice_of_delay_or_claim'],
   k: 3,
