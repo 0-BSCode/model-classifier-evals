@@ -14,7 +14,7 @@ All items are **synthetic**. They imitate formal construction contract correspon
 
 ### Why not an LLM pipeline?
 
-An earlier draft generated with a paid Gemini script was discarded for two reasons. A project rule says data is never produced with paid API calls, and Gemini later became one of the compared models. The compared models are `openai/gpt-6-luna` and `google/gemini-3.8-flash`, deliberately from a different vendor than the author, so that neither is classifying text written in its own style (self-preference bias). `assertManifest` enforces this through `dataset.draftedBy`.
+An earlier draft generated with a paid Gemini script was discarded for two reasons. A project rule says data is never produced with paid API calls, and Gemini was at the time one of the compared models. The compared models are now `openai/gpt-6-luna` and `google/gemma-4-26b-a4b-it` (pilots 1 and 2 used `google/gemini-3.8-flash`), deliberately from a different vendor than the author, so that neither is classifying text written in its own style (self-preference bias). `assertManifest` enforces this through `dataset.draftedBy`.
 
 ## Human review
 

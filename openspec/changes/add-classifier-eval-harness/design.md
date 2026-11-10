@@ -96,7 +96,7 @@ runs/…            committed reference run
 The items are written by Claude (`anthropic/claude-opus-5.5`) directly in the authoring session, with no paid API calls. A first draft made with a paid Gemini script was discarded on 2026-11-10, for two reasons: a project rule says data changes never use paid calls, and Gemini became an arm. A human then reviews every item against `GUIDELINE.md`, fixing or deleting items. `GENERATION.md` records the authoring model, date and review process.
 
 ### D10. Demo arms
-Incumbent: `openai/gpt-6-luna`. Candidate: `google/gemini-3.8-flash`. The candidate is the *more* expensive model, so the demo asks "is the upgrade worth it?". It can only be GO through rule 4 (strictly more accurate) or rule 6 (faster). Neither arm's vendor matches the drafter's vendor (anthropic). Upstream providers and prices are pinned in task 6.1.
+Incumbent: `openai/gpt-6-luna` (host `openai`). Candidate: `google/gemma-4-26b-a4b-it` (host `primeintellect/bf16`), the *cheaper* model, so the demo asks "can we downgrade to save cost without missing delay notices?". All decision rules, including cost (rule 5), can fire. The first choice of candidate, `google/gemini-3.8-flash`, was dropped on 2026-11-10 after two pilots: it cost about 20× more than Luna per call (hidden reasoning tokens), so pilots were expensive and the cost rule could never fire. Gemma 4 26B is the current-generation Gemma; bf16 is pinned because the same model id is also served at fp8 and fp4. Neither arm's vendor matches the drafter's vendor (anthropic). Upstream providers and prices are pinned in task 6.1.
 
 ## Risks / Trade-offs
 
