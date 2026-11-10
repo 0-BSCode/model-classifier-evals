@@ -20,7 +20,7 @@ From [`runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md`](r
 ## Replicate the demo in 3 commands
 
 ```sh
-git clone <this repo> && cd <repo>
+git clone https://github.com/0-BSCode/llm-classifier-evals.git && cd llm-classifier-evals
 pnpm install --frozen-lockfile                       # Node 26 (.nvmrc), pnpm 12
 cp .env.example .env                                 # then put your OpenRouter key in .env
 pnpm eval run experiments/correspondence-demo.ts
