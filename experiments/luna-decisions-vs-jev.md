@@ -18,7 +18,11 @@ From [`runs/luna-decisions-vs-jev/2026-11-10T06-58-17-856Z/verdict.md`](../runs/
 
 **Verdict: NO-GO**, decided by the delay-notice guardrail. Both models miss `c305` on every repeat. Jev also misses `c079` on every repeat: a short notice of claim sent with an attachment, which Jev reads as general correspondence. Overall accuracy is identical, but the two models make different mistakes, and the 95% CI of the difference, [−2.3, +2.2] points, crosses the −2 point margin. Jev is about a third cheaper per call: it bills fewer dollars per token but counts more tokens per request (617 against 381).
 
-Unlike the chat comparison, this verdict is not near the line: both models gave the same answer on every repeat of both missed notices. Replicate it for about **$0.06**:
+Unlike the chat comparison, this verdict is not near the line: both models gave the same answer on every repeat of both missed notices.
+
+**Replicated** on a different machine (Linux; the reference ran on macOS) in [`runs/luna-decisions-vs-jev/2026-11-10T08-06-40-817Z`](../runs/luna-decisions-vs-jev/2026-11-10T08-06-40-817Z/replication.md): NO-GO by the same guardrail, delta 0.000, CI [−2.1, +2.1] points, with the same missed notices (`c305` for both, `c079` for Jev, every repeat). The two runs gave the same majority label on 100% (Luna Decisions) and 99.3% (Jev) of items.
+
+Replicate it for about **$0.06**:
 
 ```sh
 pnpm eval run experiments/luna-decisions-vs-jev.ts
