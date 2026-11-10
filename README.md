@@ -17,6 +17,8 @@ From [`runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md`](r
 
 **Verdict: GO**, decided by the cost rule. The accuracy difference is +0.6 points, 95% CI [−0.6, +1.8], which is well above the −2 point margin. Gemma doesn't miss more delay notices, and it is about a third of the price.
 
+**Replicated** on a different machine (Linux; the reference ran on macOS) in [`runs/correspondence-luna-vs-gemma/2026-11-10T03-18-13-680Z`](runs/correspondence-luna-vs-gemma/2026-11-10T03-18-13-680Z/replication.md): GO by the same rule, delta +0.8 points, CI [−0.2, +2.0]. The two runs gave the same majority label on 98.6% (Luna) and 100% (Gemma) of items.
+
 ## Replicate the demo in 3 commands
 
 ```sh

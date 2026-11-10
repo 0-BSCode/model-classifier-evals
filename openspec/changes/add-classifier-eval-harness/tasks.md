@@ -40,4 +40,4 @@
 
 ## 7. Integration check
 
-- [ ] 7.1 In a fresh clone (on a different machine or network if possible), run the README replication command end to end; verify the comparison prints "verdict replicated". If it doesn't, the task stays open until the cause is found and either fixed or documented in README as a known limitation
+- [x] 7.1 In a fresh clone (on a different machine or network if possible), run the README replication command end to end; verify the comparison prints "verdict replicated". If it doesn't, the task stays open until the cause is found and either fixed or documented in README as a known limitation
