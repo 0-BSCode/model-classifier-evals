@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { sha256File } from './dataset.ts';
 import { estimate, execute, prepare, readRecords } from './run.ts';
-import { manifestFixture } from './testkit.ts';
+import { manifestFixture, rec } from './testkit.ts';
 import type { Manifest } from './types.ts';
 
 const N = 5;
@@ -75,4 +75,18 @@ test('resume into a run started with a different manifest is refused', async () 
   const runDir = join(dir, 'run');
   await execute({ prepared: prepare(m), runDir, apiKey: 'k', fetch: counting().f });
   await assert.rejects(execute({ prepared: prepare({ ...m, k: 2 }), runDir, apiKey: 'k', fetch: counting().f }), /different manifest/);
+});
+
+test('estimate uses past token averages per model, else a conservative assumption', () => {
+  const { m } = setup();
+  const p = prepare(m);
+  const assumed = estimate(p);
+  assert.ok(assumed.arms.every((a) => a.basis === 'assumed'));
+  const past = [rec({ item_id: 'z', arm: 'candidate', model: 'a/small', prompt_tokens: 1000, completion_tokens: 2000 })];
+  const e = estimate(p, past);
+  const small = e.arms.find((a) => a.model === 'a/small')!;
+  assert.equal(small.basis, '1 past calls');
+  // 5 items x k=3 = 15 calls x (1000 x $1 + 2000 x $5) / 1e6
+  assert.ok(Math.abs(small.usd - (15 * 11000) / 1e6) < 1e-12);
+  assert.equal(e.arms.find((a) => a.model === 'a/big')!.basis, 'assumed');
 });

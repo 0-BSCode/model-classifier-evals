@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadItems, sha256, sha256File } from './dataset.ts';
 import { classify } from './openrouter.ts';
@@ -19,17 +19,28 @@ export function prepare(m: Manifest): Prepared {
   return { manifest: { ...m, promptSha256: sha256(prompt) }, items: loadItems(m.dataset.path), prompt };
 }
 
-/** Rough pre-run estimate: ~4 chars per token, ~10 output tokens per call. */
-export function estimate({ manifest: m, items, prompt }: Prepared) {
-  const calls = items.length * ARMS.length * m.k;
-  const inTok = items.reduce((s, it) => s + (prompt.length + it.text.length) / 4, 0) * m.k;
-  const outTok = items.length * m.k * 10;
-  const usd = ARMS.reduce((s, a) => {
-    const p = m.prices[m[a].model];
-    return s + (inTok * p.inPerMTok + outTok * p.outPerMTok) / 1e6;
-  }, 0);
-  return { calls, usd };
+/**
+ * Pre-run cost estimate. Per model, uses average token counts from past calls when there are any
+ * (e.g. a pilot or reference run). Otherwise it assumes ~4 chars per input token and a conservative
+ * 300 output tokens per call, because reasoning models bill hidden thinking as output.
+ */
+export function estimate({ manifest: m, items, prompt }: Prepared, past: CallRecord[] = []) {
+  const perArm = items.length * m.k;
+  const arms = ARMS.map((a) => {
+    const model = m[a].model;
+    const seen = past.filter((r) => r.model === model && r.status !== 'error' && r.prompt_tokens != null);
+    const avg = (f: (r: CallRecord) => number) => seen.reduce((s, r) => s + f(r), 0) / seen.length;
+    const [inTok, outTok] = seen.length
+      ? [avg((r) => r.prompt_tokens!), avg((r) => r.completion_tokens ?? 0)]
+      : [items.reduce((s, it) => s + (prompt.length + it.text.length) / 4, 0) / items.length, 300];
+    const p = m.prices[model];
+    return { arm: a, model, basis: seen.length ? `${seen.length} past calls` : 'assumed', usd: (perArm * (inTok * p.inPerMTok + outTok * p.outPerMTok)) / 1e6 };
+  });
+  return { calls: perArm * ARMS.length, usd: arms.reduce((s, a) => s + a.usd, 0), arms };
 }
+
+/** Every record from committed/previous runs, for estimates. */
+export const pastRecords = () => globSync('runs/*/*/responses.jsonl').flatMap((f) => readRecords(join(f, '..')));
 
 type Task = { item: Item; arm: ArmName; repeat: number };
 const key = (id: string, arm: string, repeat: number) => `${id}|${arm}|${repeat}`;

@@ -4,7 +4,7 @@ import { createInterface } from 'node:readline/promises';
 import { compareRuns, type RunData } from './compare.ts';
 import { loadItems, sha256File, validateDataset } from './dataset.ts';
 import { loadManifest } from './manifest.ts';
-import { estimate, execute, prepare, readRecords } from './run.ts';
+import { estimate, execute, pastRecords, prepare, readRecords } from './run.ts';
 import type { ResolvedManifest } from './types.ts';
 import { buildReport, renderVerdict } from './verdict.ts';
 
@@ -40,8 +40,9 @@ async function main([cmd, ...args]: string[]): Promise<number> {
       const p = prepare(m);
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (!apiKey) throw new Error('OPENROUTER_API_KEY is not set (only needed for live runs; `score` works offline)');
-      const { calls, usd } = estimate(p);
-      console.log(`${m.name}: ${calls} calls, estimated cost ~$${usd.toFixed(2)} at the manifest's pinned prices`);
+      const est = estimate(p, pastRecords());
+      console.log(`${m.name}: ${est.calls} calls, estimated cost ~$${est.usd.toFixed(2)} at the manifest's pinned prices`);
+      for (const a of est.arms) console.log(`  ${a.arm} ${a.model}: ~$${a.usd.toFixed(2)} (tokens per call: ${a.basis})`);
       if (!args.includes('--yes') && !(await confirm('Proceed? [y/N] '))) return 0;
 
       const ri = args.indexOf('--resume');
