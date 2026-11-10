@@ -4,20 +4,15 @@ A small TypeScript harness that turns "should we switch our classifier from mode
 
 The included demo asks whether construction **contract-correspondence triage** can be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices. Each message is classified as `general_correspondence`, `rfi`, `variation_request`, `early_warning` or `notice_of_delay_or_claim`. Missing a delay notice is the costly error, because contracts time-bar late claims.
 
-## Reference result
+## Results
 
-From [`runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md`](runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md), with k=3 and 290 items:
+Each experiment has a notes file with its numbers, verdict and caveats.
 
-| | gpt-6-luna (incumbent) | gemma-4-26b-a4b-it (candidate) |
-|---|---|---|
-| accuracy | 98.5% | 99.1% |
-| delay-notice recall | 99.5% | 100% |
-| cost per call | $0.000056 | $0.000019 |
-| median latency | 2.2 s | 0.8 s |
-
-**Verdict: GO**, decided by the cost rule. The accuracy difference is +0.6 points, 95% CI [−0.6, +1.8], which is well above the −2 point margin. Gemma doesn't miss more delay notices, and it is about a third of the price.
-
-**Replicated** on a different machine (Linux; the reference ran on macOS) in [`runs/correspondence-luna-vs-gemma/2026-11-10T03-18-13-680Z`](runs/correspondence-luna-vs-gemma/2026-11-10T03-18-13-680Z/replication.md): GO by the same rule, delta +0.8 points, CI [−0.2, +2.0]. The two runs gave the same majority label on 98.6% (Luna) and 100% (Gemma) of items.
+| experiment | verdict | replicated | notes |
+|---|---|---|---|
+| Luna vs Gemma (demo) | GO (cost) | yes | [correspondence-demo.md](experiments/correspondence-demo.md) |
+| Luna chat vs Luna Decisions | NO-GO (delay-notice guardrail) | no: INCONCLUSIVE on the second machine | [luna-chat-vs-decisions.md](experiments/luna-chat-vs-decisions.md) |
+| Luna Decisions vs Jev | NO-GO (delay-notice guardrail) | not run yet | [luna-decisions-vs-jev.md](experiments/luna-decisions-vs-jev.md) |
 
 ## Replicate the demo in 3 commands
 
@@ -91,6 +86,7 @@ An experiment is one manifest file. You do not have to change code.
    pnpm eval run experiments/my-comparison.ts
    ```
 4. Optional: commit the run directory and set `referenceRun` to it. Then reruns compare against your run.
+5. Write the results and caveats in `experiments/my-comparison.md`. Add a row to the Results table above.
 
 The manifest check stops the run if:
 - a model has no price in `prices`.
@@ -117,61 +113,12 @@ candidate: { model: 'openai/gpt-6-luna-decisions', providers: ['openai'], api: '
 
 The question file has `instructions` and one description per label in `criteria`; its labels must match `labels` exactly. An arm without `api` is a chat arm, as in every other experiment. Price the decision model with `outPerMTok: 0`.
 
-`experiments/luna-chat-vs-decisions.ts` compares GPT-6 Luna through chat with the same model through the Decisions API, on the same dataset, margin and guardrails as the demo. Its question file uses the chat prompt's wording word for word (`src/prompts.test.ts` checks this): class definitions go in `criteria`, the precedence order and the acknowledgement rule in `instructions`.
-
-From [`runs/luna-chat-vs-decisions/2026-11-10T05-52-44-968Z/verdict.md`](runs/luna-chat-vs-decisions/2026-11-10T05-52-44-968Z/verdict.md), with k=3 and 290 items:
-
-| | Luna chat (incumbent) | Luna Decisions (candidate) |
-|---|---|---|
-| accuracy | 98.7% | 96.9% |
-| delay-notice recall | 99.1% | 98.6% |
-| early-warning recall | 99.4% | 92.7% |
-| stability (all 3 repeats agree) | 97.9% | 100% |
-| cost per call | $0.000056 | $0.000039 |
-| median latency | 2.7 s | 0.7 s |
-
-**Verdict: NO-GO**, decided by the delay-notice guardrail. Both models miss the same notice (`c305`, a claim buried in a correction to meeting minutes): the Decisions model on all 3 repeats, Luna chat on 2 of 3. Accuracy alone would not have given a GO either: the difference is −1.8 points, 95% CI [−3.9, +0.1], which crosses the −2 point margin. The Decisions API is about 30% cheaper and 3.7× faster, but on this dataset it is not shown to be as accurate, mostly because of early warnings it gets wrong.
-
-Replicate it like the demo, for about **$0.08**:
-
-```sh
-pnpm eval run experiments/luna-chat-vs-decisions.ts
-```
-
-Caveats specific to this experiment:
-- **The verdict sits near two lines.** The guardrail fails by one repeat of one item, and Luna chat's answer on that item varies between runs. A rerun where Luna chat also misses `c305` 3 times passes the guardrail and, with a CI like this one, comes out INCONCLUSIVE (rule 3: the CI includes the margin) instead of NO-GO. Either way the answer is "not GO".
-- **The endpoint is labelled alpha.** OpenRouter may change or remove it, so a live rerun can fail or behave differently. The committed responses always re-score offline, and every record keeps the dated model version that answered (`openai/gpt-6-luna-decisions-20261006`).
-- **The question layout is part of the experiment.** Putting the same definitions in `instructions` instead of `criteria` changed the model's probabilities in an exploration probe, so the layout was chosen before any run and is pre-registered with its hash.
-- **Probabilities are recorded, not used.** Each decision's probabilities for every label are kept in `raw` in `responses.jsonl`. The verdict uses only the top label.
-
-### Two decision models: Luna Decisions vs Jev
-
-`experiments/luna-decisions-vs-jev.ts` asks whether the Luna Decisions setup above can switch to TypeSafe's cheaper Jev (`typesafe/jev-1.14`, pinned to its only host, TypeSafe). Both models get the same question file, so the comparison is between models, not prompts.
-
-From [`runs/luna-decisions-vs-jev/2026-11-10T06-58-17-856Z/verdict.md`](runs/luna-decisions-vs-jev/2026-11-10T06-58-17-856Z/verdict.md), with k=3 and 290 items:
-
-| | Luna Decisions (incumbent) | Jev 1.14 (candidate) |
-|---|---|---|
-| accuracy | 96.9% | 96.9% |
-| delay-notice recall | 98.6% | 97.2% |
-| general-correspondence recall | 96.4% | 91.7% |
-| early-warning recall | 92.7% | 97.6% |
-| stability (all 3 repeats agree) | 100% | 99.3% |
-| cost per call | $0.000039 | $0.000026 |
-| median latency | 0.44 s | 0.37 s |
-
-**Verdict: NO-GO**, decided by the delay-notice guardrail. Both models miss `c305` on every repeat. Jev also misses `c079` on every repeat: a short notice of claim sent with an attachment, which Jev reads as general correspondence. Overall accuracy is identical, but the two models make different mistakes, and the 95% CI of the difference, [−2.3, +2.2] points, crosses the −2 point margin. Jev is about a third cheaper per call: it bills fewer dollars per token but counts more tokens per request (617 against 381).
-
-Unlike the chat comparison, this verdict is not near the line: both models gave the same answer on every repeat of both missed notices. Replicate it for about **$0.06**:
-
-```sh
-pnpm eval run experiments/luna-decisions-vs-jev.ts
-```
+See [luna-chat-vs-decisions.md](experiments/luna-chat-vs-decisions.md) and [luna-decisions-vs-jev.md](experiments/luna-decisions-vs-jev.md) for the experiments that use decision models.
 
 ## Layout
 
 ```
-experiments/   pre-registered experiment manifests
+experiments/   pre-registered experiment manifests (.ts) and their result notes (.md)
 data/          dataset (jsonl), labeling GUIDELINE.md, GENERATION.md provenance
 prompts/       classifier prompt, and question files for decision models
 runs/          committed run directories: responses.jsonl, manifest.json, env.json, verdict.md
