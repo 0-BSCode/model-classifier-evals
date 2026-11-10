@@ -70,3 +70,11 @@ test('network failure on every attempt -> error record, never throws', async () 
   assert.equal(r.status, 'error');
   assert.equal(r.error, 'ECONNRESET');
 });
+
+test('omitted temperature is not sent (hosts that reject it would otherwise be unroutable)', async () => {
+  let sent: any;
+  const o = opts(async (_u, init) => ((sent = JSON.parse(init.body as string)), reply('{"label":"rfi"}')));
+  delete o.temperature;
+  await classify(o);
+  assert.ok(!('temperature' in sent));
+});

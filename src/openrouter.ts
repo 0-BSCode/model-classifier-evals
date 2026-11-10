@@ -11,7 +11,7 @@ export type ClassifyOpts = {
   repeat: number;
   prompt: string; // template with {{text}}
   labels: string[];
-  temperature: number;
+  temperature?: number;
   apiKey: string;
   fetch?: typeof fetch;
   retryDelayMs?: number;
@@ -21,7 +21,7 @@ export function requestBody(o: Pick<ClassifyOpts, 'spec' | 'item' | 'prompt' | '
   return {
     model: o.spec.model,
     messages: [{ role: 'user', content: o.prompt.replaceAll('{{text}}', o.item.text) }],
-    temperature: o.temperature,
+    ...(o.temperature === undefined ? {} : { temperature: o.temperature }),
     response_format: {
       type: 'json_schema',
       json_schema: {

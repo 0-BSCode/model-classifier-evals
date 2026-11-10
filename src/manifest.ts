@@ -11,7 +11,6 @@ const REQUIRED: [path: string, type: 'string' | 'number' | 'object'][] = [
   ['labels', 'object'],
   ['k', 'number'],
   ['seed', 'number'],
-  ['temperature', 'number'],
   ['incumbent.model', 'string'],
   ['incumbent.providers', 'object'],
   ['candidate.model', 'string'],
@@ -40,6 +39,7 @@ export function assertManifest(m: unknown): asserts m is Manifest {
 
   if (!/^[0-9a-f]{64}$/.test(x.dataset.sha256)) errs.push('`dataset.sha256` must be 64 lowercase hex chars');
   if (!Number.isInteger(x.k) || x.k < 1) errs.push('`k` must be an integer >= 1');
+  if (x.temperature !== undefined && typeof x.temperature !== 'number') errs.push('`temperature` must be a number or omitted');
   if (x.decision.margin > 0) errs.push('`decision.margin` must be <= 0 (the worst tolerated accuracy drop)');
   for (const a of [x.incumbent, x.candidate]) {
     if (!x.prices[a.model]) errs.push(`no pinned price for model \`${a.model}\``);

@@ -12,7 +12,8 @@ export type Manifest = {
   labels: string[];
   k: number;
   seed: number;
-  temperature: number;
+  /** omit to send no temperature (some models/hosts reject it; with require_parameters it would block routing) */
+  temperature?: number;
   bootstrap?: number;
   concurrency?: number;
   incumbent: Arm;

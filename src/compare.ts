@@ -11,7 +11,7 @@ const comparableKey = (m: ResolvedManifest) =>
     prompt: m.promptSha256,
     labels: m.labels,
     k: m.k,
-    temperature: m.temperature,
+    temperature: m.temperature ?? null, // JSON drops undefined; null keeps the key comparable
     incumbent: m.incumbent,
     candidate: m.candidate,
     prices: m.prices,
