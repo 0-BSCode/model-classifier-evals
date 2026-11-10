@@ -19,6 +19,16 @@ test('drafting model family reused as an arm is rejected with the reason', () =>
   assert.throws(() => assertManifest(m), /self-preference bias/);
 });
 
+test('decisions arm without a question file, and an unknown api, are rejected', () => {
+  const m: any = manifestFixture();
+  m.candidate.api = 'decisions';
+  assert.throws(() => assertManifest(m), /`a\/small` uses the Decisions API but declares no `question` file/);
+  m.candidate.question = 'q.json';
+  assert.doesNotThrow(() => assertManifest(m));
+  m.incumbent.api = 'completions';
+  assert.throws(() => assertManifest(m), /`a\/big`: `api` must be/);
+});
+
 test('bad sha, missing price, unknown critical class, multiple providers', () => {
   const m = manifestFixture();
   m.dataset.sha256 = 'nope';

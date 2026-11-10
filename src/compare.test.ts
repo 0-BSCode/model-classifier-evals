@@ -37,6 +37,22 @@ test('different verdict -> not replicated, with label agreement', () => {
   assert.match(out, /candidate: 80\.0% of 40 items/);
 });
 
+test('runs differing only in a decisions arm question file -> refuses', () => {
+  const dec = (sha: string) => {
+    const m = manifestFixture();
+    m.candidate = { ...m.candidate, api: 'decisions', question: 'q.json', questionSha256: sha };
+    return m;
+  };
+  assert.doesNotThrow(() => compareRuns(run('a', 0, dec('d'.repeat(64))), run('b', 0, dec('d'.repeat(64)))));
+  assert.throws(() => compareRuns(run('a', 0, dec('d'.repeat(64))), run('b', 0, dec('e'.repeat(64)))), /candidate/);
+});
+
+test('manifests without `api` (runs from before per-arm APIs) stay comparable', () => {
+  const old = manifestFixture();
+  assert.equal('api' in old.incumbent || 'api' in old.candidate, false);
+  assert.match(compareRuns(run('a', 0, old), run('b', 0, manifestFixture())), /^# VERDICT REPLICATED/);
+});
+
 test('different dataset hash or margin -> refuses', () => {
   const m1 = manifestFixture();
   m1.dataset.sha256 = 'c'.repeat(64);

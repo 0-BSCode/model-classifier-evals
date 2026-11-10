@@ -1,13 +1,14 @@
 import { appendFileSync, existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { loadItems, sha256, sha256File } from './dataset.ts';
+import { decide } from './decisions.ts';
 import { classify } from './openrouter.ts';
 import { mulberry32 } from './stats.ts';
-import { ARMS, type ArmName, type CallRecord, type Item, type Manifest, type ResolvedManifest } from './types.ts';
+import { ARMS, type ArmName, type CallRecord, type Item, type Manifest, type Question, type ResolvedManifest } from './types.ts';
 
-export type Prepared = { manifest: ResolvedManifest; items: Item[]; prompt: string };
+export type Prepared = { manifest: ResolvedManifest; items: Item[]; prompt: string; questions: Partial<Record<ArmName, Question>> };
 
-/** Verify the dataset against its pre-registered hash and resolve the prompt. Makes no API calls. */
+/** Verify the dataset against its pre-registered hash and resolve the prompt and question files. Makes no API calls. */
 export function prepare(m: Manifest): Prepared {
   const actual = sha256File(m.dataset.path);
   if (actual !== m.dataset.sha256)
@@ -16,7 +17,25 @@ export function prepare(m: Manifest): Prepared {
         'The dataset changed after pre-registration; no API calls were made.',
     );
   const prompt = readFileSync(m.prompt, 'utf8');
-  return { manifest: { ...m, promptSha256: sha256(prompt) }, items: loadItems(m.dataset.path), prompt };
+  const manifest: ResolvedManifest = { ...m, promptSha256: sha256(prompt) };
+  const questions: Prepared['questions'] = {};
+  for (const a of ARMS) {
+    if (m[a].api !== 'decisions') continue; // chat arms stay byte-identical in manifest.json
+    const text = readFileSync(m[a].question!, 'utf8');
+    const q: Question = JSON.parse(text);
+    const keys = Object.keys(q.criteria ?? {});
+    const missing = m.labels.filter((l) => !keys.includes(l));
+    const extra = keys.filter((k) => !m.labels.includes(k));
+    if (typeof q.instructions !== 'string' || missing.length || extra.length)
+      throw new Error(
+        `question file ${m[a].question} must have \`instructions\` and exactly one description per label` +
+          (missing.length ? `; missing: ${missing.join(', ')}` : '') +
+          (extra.length ? `; not in labels: ${extra.join(', ')}` : ''),
+      );
+    manifest[a] = { ...m[a], questionSha256: sha256(text) };
+    questions[a] = q;
+  }
+  return { manifest, items: loadItems(m.dataset.path), prompt, questions };
 }
 
 /**
@@ -95,16 +114,11 @@ export async function execute(o: ExecuteOpts): Promise<number> {
   const worker = async () => {
     while (next < todo.length) {
       const t = todo[next++];
-      const r = await classify({
-        ...t,
-        spec: m[t.arm],
-        prompt,
-        labels: m.labels,
-        temperature: m.temperature,
-        apiKey: o.apiKey,
-        fetch: o.fetch,
-        retryDelayMs: o.retryDelayMs,
-      });
+      const common = { ...t, spec: m[t.arm], labels: m.labels, apiKey: o.apiKey, fetch: o.fetch, retryDelayMs: o.retryDelayMs };
+      const r =
+        m[t.arm].api === 'decisions'
+          ? await decide({ ...common, question: o.prepared.questions[t.arm]! })
+          : await classify({ ...common, prompt, temperature: m.temperature });
       appendFileSync(log, JSON.stringify(r) + '\n'); // one line per call, written immediately: the log is the resume state
       made++;
       o.onProgress?.(done.size + made, all.length);

@@ -42,6 +42,10 @@ export function assertManifest(m: unknown): asserts m is Manifest {
   if (x.temperature !== undefined && typeof x.temperature !== 'number') errs.push('`temperature` must be a number or omitted');
   if (x.decision.margin > 0) errs.push('`decision.margin` must be <= 0 (the worst tolerated accuracy drop)');
   for (const a of [x.incumbent, x.candidate]) {
+    if (a.api !== undefined && a.api !== 'chat' && a.api !== 'decisions')
+      errs.push(`arm \`${a.model}\`: \`api\` must be 'chat', 'decisions' or omitted`);
+    if (a.api === 'decisions' && typeof a.question !== 'string')
+      errs.push(`arm \`${a.model}\` uses the Decisions API but declares no \`question\` file`);
     if (!x.prices[a.model]) errs.push(`no pinned price for model \`${a.model}\``);
     if (a.providers.length !== 1) errs.push(`arm \`${a.model}\` must pin exactly one provider (served-by is then guaranteed)`);
     if (vendor(a.model) === vendor(x.dataset.draftedBy))

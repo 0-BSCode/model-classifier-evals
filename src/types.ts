@@ -1,7 +1,19 @@
 export type ArmName = 'incumbent' | 'candidate';
 export const ARMS: readonly ArmName[] = ['incumbent', 'candidate'];
 
-export type Arm = { model: string; providers: string[] };
+export type Arm = {
+  model: string;
+  providers: string[];
+  /** omitted = chat. Never written as a default, so chat arms (and old runs' comparison keys) stay unchanged. */
+  api?: 'chat' | 'decisions';
+  /** decisions arms only: path to the question file (instructions + one description per label) */
+  question?: string;
+  /** set by `prepare()` on resolved decisions arms */
+  questionSha256?: string;
+};
+
+/** A decisions arm's question file. */
+export type Question = { instructions: string; criteria: Record<string, string> };
 
 export type Manifest = {
   name: string;
