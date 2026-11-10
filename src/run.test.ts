@@ -1,0 +1,78 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { sha256File } from './dataset.ts';
+import { estimate, execute, prepare, readRecords } from './run.ts';
+import { manifestFixture } from './testkit.ts';
+import type { Manifest } from './types.ts';
+
+const N = 5;
+
+function setup() {
+  const dir = mkdtempSync(join(tmpdir(), 'run-test-'));
+  const data = join(dir, 'data.jsonl');
+  writeFileSync(data, Array.from({ length: N }, (_, i) => JSON.stringify({ id: `i${i}`, text: `msg ${i}`, label: 'x' })).join('\n') + '\n');
+  writeFileSync(join(dir, 'prompt.md'), 'Classify: {{text}}');
+  const { promptSha256: _, ...base } = manifestFixture();
+  const m: Manifest = { ...base, dataset: { ...base.dataset, path: data, sha256: sha256File(data) }, prompt: join(dir, 'prompt.md'), k: 3, concurrency: 1 };
+  return { dir, m };
+}
+
+const counting = () => {
+  const c = { n: 0 };
+  const f = (async (_u: string, init: RequestInit) => {
+    c.n++;
+    const body = JSON.parse(init.body as string);
+    return new Response(JSON.stringify({ model: body.model, choices: [{ message: { content: '{"label":"x"}' } }], usage: { prompt_tokens: 5, completion_tokens: 2 } }));
+  }) as typeof fetch;
+  return { c, f };
+};
+
+test('dataset hash mismatch aborts before any call', () => {
+  const { m } = setup();
+  writeFileSync(m.dataset.path, '{"id":"edited","text":"t","label":"x"}\n');
+  assert.throws(() => prepare(m), /hash mismatch[\s\S]*no API calls/);
+});
+
+test('2 arms x k=3 -> 6N records, all fields present, arms interleaved', async () => {
+  const { dir, m } = setup();
+  const { c, f } = counting();
+  const p = prepare(m);
+  assert.equal(estimate(p).calls, 6 * N);
+  const runDir = join(dir, 'run');
+  await execute({ prepared: p, runDir, apiKey: 'k', fetch: f });
+  const rs = readRecords(runDir);
+  assert.equal(c.n, 6 * N);
+  assert.equal(rs.length, 6 * N);
+  assert.equal(new Set(rs.map((r) => `${r.item_id}|${r.arm}|${r.repeat}`)).size, 6 * N);
+  for (const k of ['item_id', 'arm', 'repeat', 'request_hash', 'status', 'raw', 'label', 'served_by', 'model', 'prompt_tokens', 'completion_tokens', 'latency_ms', 'ts'])
+    assert.ok(k in rs[0], k);
+  const half = rs.length / 2;
+  for (const part of [rs.slice(0, half), rs.slice(half)]) assert.deepEqual(new Set(part.map((r) => r.arm)), new Set(['incumbent', 'candidate']));
+  assert.equal(JSON.parse(readFileSync(join(runDir, 'manifest.json'), 'utf8')).promptSha256.length, 64);
+  assert.ok(JSON.parse(readFileSync(join(runDir, 'env.json'), 'utf8')).node);
+});
+
+test('resume after M records makes only the remaining 6N-M calls', async () => {
+  const { dir, m } = setup();
+  const runDir = join(dir, 'run');
+  const p = prepare(m);
+  await execute({ prepared: p, runDir, apiKey: 'k', fetch: counting().f });
+  const M = 7;
+  const log = join(runDir, 'responses.jsonl');
+  writeFileSync(log, readFileSync(log, 'utf8').split('\n').slice(0, M).join('\n') + '\n'); // simulate interruption
+  const { c, f } = counting();
+  const made = await execute({ prepared: p, runDir, apiKey: 'k', fetch: f });
+  assert.equal(made, 6 * N - M);
+  assert.equal(c.n, 6 * N - M);
+  assert.equal(readRecords(runDir).length, 6 * N);
+});
+
+test('resume into a run started with a different manifest is refused', async () => {
+  const { dir, m } = setup();
+  const runDir = join(dir, 'run');
+  await execute({ prepared: prepare(m), runDir, apiKey: 'k', fetch: counting().f });
+  await assert.rejects(execute({ prepared: prepare({ ...m, k: 2 }), runDir, apiKey: 'k', fetch: counting().f }), /different manifest/);
+});
