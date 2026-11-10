@@ -88,3 +88,19 @@ Verification re-scores all four committed run directories with the new code and 
 ## Migration Plan
 
 None needed: the change is additive. Existing experiments and committed runs need no edits. Rollback is a revert of the change's commits.
+
+## Pilot result (task 4.3)
+
+`runs/luna-chat-vs-decisions-pilot/2026-11-10T05-43-25-326Z` (k=1, 580 calls, $0.028) checked the plumbing only:
+
+| | Luna chat | Luna Decisions |
+|---|---|---|
+| status | 290 ok | 290 ok |
+| API errors | 0 | 0 |
+| served by | OpenAI (290) | OpenAI (290) |
+| model recorded | `openai/gpt-6-luna` | `openai/gpt-6-luna-decisions-20261006` (290) |
+| cost recorded | 290 of 290 | 290 of 290 |
+| cost per call | $0.000056 | $0.000039 |
+| median latency | 2.66 s | 0.76 s |
+
+Every plumbing check passed, so nothing in the manifest or question file changed. As pre-registered, the pilot's accuracy (delta -0.014, CI [-0.038, 0.010], INCONCLUSIVE at k=1) was not used to change the experiment.
