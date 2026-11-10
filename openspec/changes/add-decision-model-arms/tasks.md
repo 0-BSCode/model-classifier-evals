@@ -27,7 +27,7 @@
 
 ## 5. Integration check
 
-- [ ] 5.1 In a fresh clone, run `pnpm install --frozen-lockfile`, `pnpm test`, `pnpm typecheck`, and offline `pnpm eval score` on every committed run; verify all pass and `git status` shows no changes
+- [x] 5.1 In a fresh clone, run `pnpm install --frozen-lockfile`, `pnpm test`, `pnpm typecheck`, and offline `pnpm eval score` on every committed run; verify all pass and `git status` shows no changes
 
 ## Workflow follow-up
 
