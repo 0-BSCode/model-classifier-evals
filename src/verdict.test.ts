@@ -31,7 +31,7 @@ test('CI entirely below margin -> NO-GO', () => {
 test('strictly better but guardrail fails -> NO-GO by guardrail', () => {
   const v = decide(d(0.02, 0.08), arms(), [{ pass: false }], dec);
   assert.equal(v.verdict, 'NO-GO');
-  assert.match(v.rule, /^3 \(guardrail\)/);
+  assert.match(v.rule, /^1 \(guardrail\)/);
 });
 
 test('strictly better -> GO by accuracy', () => {
@@ -46,6 +46,16 @@ test('no benefit -> NO-GO', () => {
   const v = decide(d(-0.01, 0.01), arms({ cc: 0.95, cl: 95 }), ok, dec);
   assert.equal(v.verdict, 'NO-GO');
   assert.match(v.rule, /^7 \(no benefit\)/);
+});
+
+test('guardrail failure beats uncertain accuracy -> NO-GO', () => {
+  const v = decide(d(-0.05, 0.01), arms(), [{ pass: false }], dec);
+  assert.equal(v.verdict, 'NO-GO');
+  assert.match(v.rule, /^1 \(guardrail\)/);
+});
+
+test('error rate above max -> INCONCLUSIVE even if a guardrail fails', () => {
+  assert.match(decide(d(0.1, 0.2), arms({ ie: 0.1 }), [{ pass: false }], dec).rule, /^0 \(errors\)/);
 });
 
 test('error rate above max -> INCONCLUSIVE regardless of accuracy', () => {
@@ -81,7 +91,7 @@ test('end to end: report, critical-class guardrail, first line is the verdict, d
     records.push(rec({ item_id: id, arm: 'candidate', label: i === 0 ? 'x' : g }));
   }
   const r = buildReport(records, gold, m);
-  assert.equal(r.verdict, 'INCONCLUSIVE'); // delta -0.025, CI includes margin
+  assert.equal(r.verdict, 'NO-GO'); // guardrail fails before the (inconclusive) accuracy rules
   assert.equal(r.guardrails[0].pass, false);
   const md = renderVerdict(r);
   assert.match(md.split('\n')[0], /^# Verdict: (GO|NO-GO|INCONCLUSIVE),/);

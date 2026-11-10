@@ -84,10 +84,11 @@ export function decide(
   const worstErr = Math.max(arms.incumbent.errorRate, arms.candidate.errorRate);
   if (worstErr > dec.maxErrorRate)
     return { verdict: 'INCONCLUSIVE', rule: `0 (errors): API error rate ${pct(worstErr)} exceeds ${pct(dec.maxErrorRate)}` };
-  if (d.hi < dec.margin) return { verdict: 'NO-GO', rule: `1 (accuracy): delta CI entirely below margin ${fmt(dec.margin)}` };
+  // A failed guardrail is decisive on its own: missing more critical items is a NO-GO however uncertain accuracy is.
+  if (guardrails.some((g) => !g.pass)) return { verdict: 'NO-GO', rule: '1 (guardrail): a guardrail failed' };
+  if (d.hi < dec.margin) return { verdict: 'NO-GO', rule: `2 (accuracy): delta CI entirely below margin ${fmt(dec.margin)}` };
   if (d.lo < dec.margin)
-    return { verdict: 'INCONCLUSIVE', rule: `2 (accuracy): delta CI includes margin ${fmt(dec.margin)}; more items needed` };
-  if (guardrails.some((g) => !g.pass)) return { verdict: 'NO-GO', rule: '3 (guardrail): a guardrail failed' };
+    return { verdict: 'INCONCLUSIVE', rule: `3 (accuracy): delta CI includes margin ${fmt(dec.margin)}; more items needed` };
   if (d.lo > 0) return { verdict: 'GO', rule: '4 (accuracy): candidate strictly better' };
   const { incumbent: i, candidate: c } = arms;
   if (c.costPerCall <= i.costPerCall * (1 - dec.costGain))

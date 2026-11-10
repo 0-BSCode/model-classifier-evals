@@ -49,7 +49,7 @@ Cost per item SHALL be computed from recorded token counts and the manifest's pi
 - **THEN** re-scoring that run reports the same cost figures as before
 
 ### Requirement: Decision rule
-The verdict SHALL be computed in this order: (1) delta CI upper bound below margin → NO-GO; (2) CI lower bound below margin → INCONCLUSIVE; (3) any guardrail failed → NO-GO; (4) CI lower bound above 0 → GO; (5) candidate cheaper by at least the cost threshold → GO; (6) candidate faster by at least the latency threshold → GO; (7) otherwise NO-GO. The report MUST state which rule decided it.
+The verdict SHALL be computed in this order, after the API error check: (1) any guardrail failed → NO-GO; (2) delta CI upper bound below margin → NO-GO; (3) CI lower bound below margin → INCONCLUSIVE; (4) CI lower bound above 0 → GO; (5) candidate cheaper by at least the cost threshold → GO; (6) candidate faster by at least the latency threshold → GO; (7) otherwise NO-GO. The report MUST state which rule decided it.
 
 #### Scenario: Non-inferior and cheaper
 - **WHEN** the delta CI lies within [margin, 0] or straddles 0 above margin, guardrails pass, and the candidate is 40% cheaper with a 20% threshold
@@ -58,6 +58,10 @@ The verdict SHALL be computed in this order: (1) delta CI upper bound below marg
 #### Scenario: Close to the margin
 - **WHEN** the delta CI includes the margin
 - **THEN** the verdict is INCONCLUSIVE, with a note that more items are needed
+
+#### Scenario: Guardrail fails while accuracy is uncertain
+- **WHEN** the delta CI includes the margin and critical-class recall regresses beyond tolerance
+- **THEN** the verdict is NO-GO, decided by the guardrail rule
 
 #### Scenario: Strictly better but breaks guardrail
 - **WHEN** the delta CI is entirely above 0 but critical-class recall regresses beyond tolerance
