@@ -26,7 +26,34 @@ export type Report = {
   rule: string;
 };
 
+/** Throws unless records hold every (gold item, arm, repeat 0..k-1) exactly once. Error records count as observations. */
+export function assertComplete(records: CallRecord[], gold: Map<string, string>, k: number): void {
+  const problems: string[] = [];
+  const seen = new Set<string>();
+  for (const r of records) {
+    const key = `${r.item_id}/${r.arm}/${r.repeat}`;
+    if (!gold.has(r.item_id)) problems.push(`unknown item: ${key}`);
+    else if (!ARMS.includes(r.arm)) problems.push(`unknown arm: ${key}`);
+    else if (!Number.isInteger(r.repeat) || r.repeat < 0 || r.repeat >= k) problems.push(`repeat outside 0..${k - 1}: ${key}`);
+    else if (seen.has(key)) problems.push(`duplicate: ${key}`);
+    seen.add(key);
+  }
+  let missing = 0;
+  for (const id of gold.keys())
+    for (const a of ARMS)
+      for (let i = 0; i < k; i++)
+        if (!seen.has(`${id}/${a}/${i}`)) missing++ < 5 && problems.push(`missing: ${id}/${a}/${i}`);
+  if (problems.length === 0) return;
+  const extra = problems.length + Math.max(0, missing - 5) - 5;
+  throw new Error(
+    `run cannot be scored: its records are not exactly one per (item, arm, repeat)\n  ${problems.slice(0, 5).join('\n  ')}` +
+      (extra > 0 ? `\n  ...and ${extra} more` : '') +
+      (missing ? `\n${missing} observation(s) missing; resume the run with \`pnpm eval run <experiment> --resume <runDir>\`` : ''),
+  );
+}
+
 export function buildReport(records: CallRecord[], gold: Map<string, string>, m: Manifest): Report {
+  assertComplete(records, gold, m.k);
   const arms = Object.fromEntries(
     ARMS.map((a) => {
       const r = rates(records, a);
