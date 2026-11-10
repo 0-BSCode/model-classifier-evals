@@ -73,6 +73,38 @@ Reruns reach the same verdict because:
 - **Pinned prices.** Cost is computed as tokens × prices fixed in the manifest, so later price changes don't move it. Latency is compared only within a run, with the two models' calls interleaved so they share network conditions.
 - **Hashed dataset.** The dataset is committed and hash-checked, and the prompt's hash is recorded with each run.
 
+## Compare two other models
+
+An experiment is one manifest file. You do not have to change code.
+
+1. Copy the demo manifest:
+   ```sh
+   cp experiments/correspondence-demo.ts experiments/my-comparison.ts
+   ```
+2. In the copy, change these fields:
+   - `name`: a new name. The run goes to `runs/<name>/`.
+   - `incumbent` and `candidate`: the model IDs. Pin exactly one provider for each. If many hosts serve the model, also pin the precision (for example, `host/bf16`).
+   - `prices`: input and output price per million tokens for each model. Get them from OpenRouter's endpoint listing and write the date in a comment.
+   - Remove `referenceRun`. A new experiment has no run to replicate yet.
+3. Run it:
+   ```sh
+   pnpm eval run experiments/my-comparison.ts
+   ```
+4. Optional: commit the run directory and set `referenceRun` to it. Then reruns compare against your run.
+
+The manifest check stops the run if:
+- a model has no price in `prices`.
+- an arm does not pin exactly one provider.
+- a model is from the same vendor as `dataset.draftedBy`. The demo dataset was drafted by Claude, so you cannot use it to compare Claude models.
+
+Do not set `temperature` if a model's host does not accept it.
+
+To change the task, add a dataset in `data/`, check it with `pnpm eval validate-data <file>`, and put its sha256 in `dataset.sha256`. Then change `prompt`, `labels` and `guardrails.criticalClasses` to match.
+
+To do a cheap test run first, use `k: 1`. See `experiments/correspondence-pilot.ts`.
+
+For a model with no past runs, the cost estimate assumes 300 output tokens per call. The real cost can be different.
+
 ## Layout
 
 ```
