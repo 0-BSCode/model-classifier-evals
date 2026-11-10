@@ -1,5 +1,5 @@
 {
-  "name": "llm-classifier-evals",
+  "name": "model-classifier-evals",
   "version": "0.1.0",
   "private": true,
   "type": "module",

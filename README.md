@@ -1,4 +1,4 @@
-# Reproducible LLM classifier evals
+# Reproducible model classifier evals
 
 A small TypeScript evaluation harness for deciding whether to switch a classifier from model A to model B, with a **GO / NO-GO / INCONCLUSIVE** verdict. Saved responses can be re-scored offline to reproduce the report exactly. Fresh live runs test whether the switching decision repeats, and may produce a different verdict: model outputs and service conditions change between runs.
 
@@ -17,7 +17,7 @@ Each experiment has a notes file with its numbers, verdict and caveats.
 ## Replicate Luna vs Gemma in 3 commands
 
 ```sh
-git clone https://github.com/0-BSCode/llm-classifier-evals.git && cd llm-classifier-evals
+git clone https://github.com/0-BSCode/model-classifier-evals.git && cd model-classifier-evals
 pnpm install --frozen-lockfile                       # Node 26 (.nvmrc), pnpm 12
 cp .env.example .env                                 # then put your OpenRouter key in .env
 pnpm eval run experiments/correspondence-luna-vs-gemma.ts
