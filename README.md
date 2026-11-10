@@ -1,6 +1,6 @@
 # Reproducible LLM classifier evals
 
-A small TypeScript harness that turns "should we switch our classifier from model A to model B?" into a **GO / NO-GO / INCONCLUSIVE** verdict that anyone can rerun and reach the same conclusion. The goal is to replicate the verdict; the exact numbers will vary from run to run.
+A small TypeScript evaluation harness for deciding whether to switch a classifier from model A to model B, with a **GO / NO-GO / INCONCLUSIVE** verdict. Saved responses can be re-scored offline to reproduce the report exactly. Fresh live runs test whether the switching decision repeats, and may produce a different verdict: model outputs and service conditions change between runs.
 
 The first experiment, Luna vs Gemma, asks whether construction **contract-correspondence triage** can be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices. Each message is classified as `general_correspondence`, `rfi`, `variation_request`, `early_warning` or `notice_of_delay_or_claim`. Missing a delay notice is the costly error, because contracts time-bar late claims.
 
@@ -23,10 +23,10 @@ cp .env.example .env                                 # then put your OpenRouter 
 pnpm eval run experiments/correspondence-luna-vs-gemma.ts
 ```
 
-`run` verifies the dataset hash, prints a cost estimate and asks for confirmation, then classifies every item 3 times per model. It scores the run, writes `runs/<experiment>/<timestamp>/verdict.md`, and compares your verdict with the committed reference run:
+`run` verifies the dataset hash, prints a cost estimate and asks for confirmation, then classifies every item 3 times per model. It scores the run, writes `runs/<experiment>/<timestamp>/verdict.md`, and compares your verdict with the committed reference run. The report starts with one of two lines:
 
 ```
-# VERDICT REPLICATED
+# VERDICT REPLICATED          (or: # VERDICT NOT REPLICATED)
 | run | verdict | accuracy delta [95% CI] | deciding rule |
 ```
 
@@ -62,8 +62,8 @@ accuracy delta = candidate - incumbent, paired bootstrap 95% CI over items
 7  otherwise: no reason to switch                 -> NO-GO
 ```
 
-Reruns reach the same verdict because:
-- **Repeats and CIs.** Each item is classified k=3 times, and the verdict uses a confidence interval rather than a point estimate. A result near the line comes out INCONCLUSIVE instead of flipping between GO and NO-GO.
+How the comparison controls variation:
+- **Repeats and CIs.** Each item is classified k=3 times, and the accuracy rules use a confidence interval rather than a point estimate. This measures run-to-run variation and makes a flip between GO and NO-GO on accuracy less likely, but it does not guarantee that a fresh run reaches the same verdict. The critical-class guardrail compares point estimates, so a single item answered differently can change it: Luna chat vs Luna Decisions gave NO-GO on one run and INCONCLUSIVE on the next.
 - **Pinned hosts.** Each model is pinned to one OpenRouter host, standard tier, with fallbacks off. A rerun can't silently be served by a different host or quantization.
 - **Pinned prices.** Cost is computed as tokens × prices fixed in the manifest, so later price changes don't move it. Latency is compared only within a run, with the two models' calls interleaved so they share network conditions.
 - **Hashed dataset.** The dataset is committed and hash-checked, and the prompt's hash is recorded with each run.
