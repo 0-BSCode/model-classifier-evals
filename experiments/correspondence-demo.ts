@@ -24,4 +24,6 @@ export default {
   decision: { margin: -0.02, costGain: 0.2, latencyGain: 0.2, maxErrorRate: 0.02 },
   // Missing a delay notice is the costly error: the candidate may not lose any notice recall.
   guardrails: { criticalClasses: { notice_of_delay_or_claim: 0 }, maxParseFailureRate: 0.02 },
+  // The committed run every replication is compared against (not part of the pre-registered comparison key).
+  referenceRun: 'runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z',
 } satisfies Manifest;

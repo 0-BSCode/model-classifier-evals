@@ -34,8 +34,8 @@
 
 ## 6. Demo experiment and docs
 
-- [ ] 6.1 Pin upstream providers for the D10 arms (`openai/gpt-6-luna` vs `google/gemma-4-26b-a4b-it`), pin prices from OpenRouter's listing, and write `experiments/correspondence-demo.ts` with the dataset sha256; verify `assertManifest` passes and the drafting model is not an arm
-- [ ] 6.2 Run the demo with k=3, commit the run directory, and set it as `referenceRun`; verify `runs/…/verdict.md` exists and re-scoring it offline is byte-identical
+- [x] 6.1 Pin upstream providers for the D10 arms (`openai/gpt-6-luna` vs `google/gemma-4-26b-a4b-it`), pin prices from OpenRouter's listing, and write `experiments/correspondence-demo.ts` with the dataset sha256; verify `assertManifest` passes and the drafting model is not an arm
+- [x] 6.2 Run the demo with k=3, commit the run directory, and set it as `referenceRun`; verify `runs/…/verdict.md` exists and re-scoring it offline is byte-identical
 - [ ] 6.3 Write `README.md`: what a verdict means, the 3-command replication path (clone → `pnpm install --frozen-lockfile` → `pnpm eval run experiments/correspondence-demo.ts`), the offline `pnpm eval score` path, the approximate cost and time of the demo run, what to do if a model is retired (fork the manifest as a new experiment), and the synthetic-data caveat; verify by following the README verbatim in a fresh clone
 
 ## 7. Integration check
