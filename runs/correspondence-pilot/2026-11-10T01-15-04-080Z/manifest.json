@@ -1,0 +1,55 @@
+{
+  "name": "correspondence-pilot",
+  "dataset": {
+    "path": "data/correspondence.jsonl",
+    "sha256": "8c0068f48ac91034ac3a5ba32fa08947f3fe25d8eadda337070b8bdded063dcf",
+    "draftedBy": "anthropic/claude-opus-5.5"
+  },
+  "prompt": "prompts/triage-v1.md",
+  "labels": [
+    "general_correspondence",
+    "rfi",
+    "variation_request",
+    "early_warning",
+    "notice_of_delay_or_claim"
+  ],
+  "k": 1,
+  "seed": 42,
+  "bootstrap": 10000,
+  "concurrency": 4,
+  "incumbent": {
+    "model": "openai/gpt-6-luna",
+    "providers": [
+      "openai"
+    ]
+  },
+  "candidate": {
+    "model": "google/gemini-3.8-flash",
+    "providers": [
+      "google-vertex/global"
+    ]
+  },
+  "prices": {
+    "openai/gpt-6-luna": {
+      "inPerMTok": 0.1,
+      "outPerMTok": 0.5
+    },
+    "google/gemini-3.8-flash": {
+      "inPerMTok": 0.75,
+      "outPerMTok": 3.75
+    }
+  },
+  "decision": {
+    "margin": -0.02,
+    "costGain": 0.2,
+    "latencyGain": 0.2,
+    "maxErrorRate": 0.02
+  },
+  "guardrails": {
+    "criticalClasses": {
+      "notice_of_delay_or_claim": 0
+    },
+    "maxParseFailureRate": 0.02
+  },
+  "promptSha256": "497ee2448cd58e400a56caec411aa3fb4f0309ca446932e4462fe63dce5bf4c1"
+}
