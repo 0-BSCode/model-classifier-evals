@@ -13,6 +13,14 @@ Scoring SHALL depend only on the run directory and dataset, with no network acce
 - **WHEN** a user without an API key scores a committed run directory
 - **THEN** the output is byte-identical to the committed `verdict.md`
 
+#### Scenario: Run recorded before per-arm APIs
+- **WHEN** a run directory committed before arms could declare an API is scored with the current harness
+- **THEN** the output is byte-identical to that run's committed `verdict.md`
+
+#### Scenario: Run with a decisions arm
+- **WHEN** a run with a decisions arm is scored
+- **THEN** the verdict, metrics and guardrails are computed from its records exactly as for a chat arm
+
 ### Requirement: Item-level paired accuracy
 Per arm, each item's score SHALL be the fraction of its `k` repeats whose label matches gold, counting parse failures as incorrect. The accuracy delta (candidate minus incumbent) SHALL be reported with a 95% paired bootstrap CI that resamples items.
 
@@ -87,4 +95,12 @@ The user SHALL be able to compare a new run with a reference run of the same man
 
 #### Scenario: Different manifest
 - **WHEN** the two runs used manifests with different dataset hashes or margins
+- **THEN** the comparison refuses and explains that the runs are not comparable
+
+#### Scenario: Existing run compared with a new rerun
+- **WHEN** a run committed before arms could declare an API is compared with a new run of the same, unchanged manifest
+- **THEN** the runs are comparable
+
+#### Scenario: Different decisions question
+- **WHEN** two runs differ only in a decisions arm's question file
 - **THEN** the comparison refuses and explains that the runs are not comparable
