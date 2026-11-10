@@ -30,7 +30,7 @@
 - [x] 5.1 Write `data/GUIDELINE.md` (five class definitions, a positive and a borderline example per class, the "most severe wins" precedence, generic wording with no standard-form clause numbers); verify every spec requirement for the guideline is covered by checking each against the spec
 - [x] 5.2 Author the items directly (Claude, no paid calls; see D9) into `data/correspondence.jsonl`, with varied senders, tone and length, deliberate borderline cases, and oversampled notices; verify the file passes `validate-data`
 - [x] 5.3 Human-review every item against GUIDELINE.md (fix or delete, check no real names or clause numbers), commit `data/correspondence.jsonl`, and write `data/GENERATION.md` (authoring model, date, review process); verify `validate-data` passes and that ≥50 items are notices
-- [ ] 5.4 Pilot-check difficulty: run both demo arms with k=1 on the dataset; if the dataset is at a ceiling (both above 95% and the critical-class guardrail cannot fail), add harder borderline items (written directly, no paid calls) and repeat; verify that the final pilot can fail the critical-class guardrail or shows a non-ceiling verdict, and record the pilot numbers in GENERATION.md
+- [x] 5.4 Pilot-check difficulty: run both demo arms with k=1 on the dataset; if the dataset is at a ceiling (both above 95% and the critical-class guardrail cannot fail), add harder borderline items (written directly, no paid calls) and repeat; verify that the final pilot can fail the critical-class guardrail or shows a non-ceiling verdict, and record the pilot numbers in GENERATION.md
 
 ## 6. Demo experiment and docs
 

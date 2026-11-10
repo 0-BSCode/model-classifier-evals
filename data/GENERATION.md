@@ -55,6 +55,14 @@ Both models scored above the 95% threshold, and the critical-class guardrail cou
 - The original items are short (median about 34 words); the hard items are longer (median about 54). Real correspondence is usually longer still.
 - One author wrote all the items, so the style is more uniform than real traffic, and a small cast of fictional parties recurs.
 
-## Pilot 2
+## Pilots 2 and 3 (on this 290-item version)
 
-_Filled in after the second pilot._
+| | pilot 2: Luna vs Gemini 3.8 Flash | pilot 3: Luna vs Gemma 4 26B |
+|---|---|---|
+| incumbent accuracy (Luna) | 97.6% | 98.3% |
+| candidate accuracy | 97.2% | 99.3% |
+| accuracy on the 60 hard items | 96.7% / 91.7% | 96.7% / 98.3% |
+| notice recall (Luna / candidate) | 98.6% / 97.2%: **guardrail fails** | 98.6% / 100% |
+| cost | $0.34 | $0.02 |
+
+Pilot 2 showed the revised dataset can fail the critical-class guardrail: Flash missed notices buried in a minutes correction (c305) and in a two-question message (c283). The dataset therefore isn't at a ceiling, even though the incumbent stays above 95%. The reviewer accepted this version as final on 2026-11-10. Flash was then replaced as the candidate for cost reasons (see design D10), and pilot 3 checked the new candidate's host and token usage before the reference run.
