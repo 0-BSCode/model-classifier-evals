@@ -3,7 +3,7 @@ import type { Manifest } from '../src/types.ts';
 // Can contract-correspondence triage switch from GPT-6 Luna (chat) to the same model through
 // OpenRouter's Decisions API without missing delay notices? Same model, different interface.
 // Everything below is pre-registered: changing any of it makes a new experiment, not a replication.
-// Dataset, labels, seed, decision rule and guardrails are the same as experiments/correspondence-demo.ts.
+// Dataset, labels, seed, decision rule and guardrails are the same as experiments/correspondence-luna-vs-gemma.ts.
 export default {
   name: 'luna-chat-vs-decisions',
   dataset: { path: 'data/correspondence.jsonl', sha256: '8c0068f48ac91034ac3a5ba32fa08947f3fe25d8eadda337070b8bdded063dcf', draftedBy: 'anthropic/claude-opus-5.5' },

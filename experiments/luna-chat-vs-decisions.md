@@ -2,7 +2,7 @@
 
 Manifest: [`luna-chat-vs-decisions.ts`](luna-chat-vs-decisions.ts).
 
-This experiment compares GPT-6 Luna through chat with the same model through the Decisions API, on the same dataset, margin and guardrails as the demo. Its question file uses the chat prompt's wording word for word (`src/prompts.test.ts` checks this): class definitions go in `criteria`, the precedence order and the acknowledgement rule in `instructions`.
+This experiment compares GPT-6 Luna through chat with the same model through the Decisions API, on the same dataset, margin and guardrails as [Luna vs Gemma](correspondence-luna-vs-gemma.md). Its question file uses the chat prompt's wording word for word (`src/prompts.test.ts` checks this): class definitions go in `criteria`, the precedence order and the acknowledgement rule in `instructions`.
 
 From [`runs/luna-chat-vs-decisions/2026-11-10T05-52-44-968Z/verdict.md`](../runs/luna-chat-vs-decisions/2026-11-10T05-52-44-968Z/verdict.md), with k=3 and 290 items:
 
@@ -19,7 +19,7 @@ From [`runs/luna-chat-vs-decisions/2026-11-10T05-52-44-968Z/verdict.md`](../runs
 
 **Not replicated** on a different machine (Linux; the reference ran on macOS) in [`runs/luna-chat-vs-decisions/2026-11-10T06-45-27-524Z`](../runs/luna-chat-vs-decisions/2026-11-10T06-45-27-524Z/replication.md): INCONCLUSIVE (rule 3), delta −1.5 points, CI [−3.7, +0.6]. The Decisions model gave the same answers in both runs. Luna chat missed `c305` on all 3 repeats this time, so the guardrail tied and passed. This is the near-line case in the caveats below. Both runs say "not GO".
 
-Replicate it like the demo (see the README), for about **$0.08**:
+Replicate it like Luna vs Gemma (see the README), for about **$0.08**:
 
 ```sh
 pnpm eval run experiments/luna-chat-vs-decisions.ts

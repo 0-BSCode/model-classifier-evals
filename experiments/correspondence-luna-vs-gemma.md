@@ -1,6 +1,6 @@
-# Demo: Luna vs Gemma
+# Luna vs Gemma
 
-Manifest: [`correspondence-demo.ts`](correspondence-demo.ts). Can contract-correspondence triage be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices?
+Manifest: [`correspondence-luna-vs-gemma.ts`](correspondence-luna-vs-gemma.ts). Can contract-correspondence triage be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices?
 
 From [`runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md`](../runs/correspondence-luna-vs-gemma/2026-11-10T01-50-29-800Z/verdict.md), with k=3 and 290 items:
 

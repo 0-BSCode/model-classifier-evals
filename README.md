@@ -2,7 +2,7 @@
 
 A small TypeScript harness that turns "should we switch our classifier from model A to model B?" into a **GO / NO-GO / INCONCLUSIVE** verdict that anyone can rerun and reach the same conclusion. The goal is to replicate the verdict; the exact numbers will vary from run to run.
 
-The included demo asks whether construction **contract-correspondence triage** can be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices. Each message is classified as `general_correspondence`, `rfi`, `variation_request`, `early_warning` or `notice_of_delay_or_claim`. Missing a delay notice is the costly error, because contracts time-bar late claims.
+The first experiment, Luna vs Gemma, asks whether construction **contract-correspondence triage** can be downgraded from `openai/gpt-6-luna` to the cheaper `google/gemma-4-26b-a4b-it` without missing more delay notices. Each message is classified as `general_correspondence`, `rfi`, `variation_request`, `early_warning` or `notice_of_delay_or_claim`. Missing a delay notice is the costly error, because contracts time-bar late claims.
 
 ## Results
 
@@ -10,17 +10,17 @@ Each experiment has a notes file with its numbers, verdict and caveats.
 
 | experiment | verdict | replicated | notes |
 |---|---|---|---|
-| Luna vs Gemma (demo) | GO (cost) | yes | [correspondence-demo.md](experiments/correspondence-demo.md) |
+| Luna vs Gemma | GO (cost) | yes | [correspondence-luna-vs-gemma.md](experiments/correspondence-luna-vs-gemma.md) |
 | Luna chat vs Luna Decisions | NO-GO (delay-notice guardrail) | no: INCONCLUSIVE on the second machine | [luna-chat-vs-decisions.md](experiments/luna-chat-vs-decisions.md) |
-| Luna Decisions vs Jev | NO-GO (delay-notice guardrail) | not run yet | [luna-decisions-vs-jev.md](experiments/luna-decisions-vs-jev.md) |
+| Luna Decisions vs Jev | NO-GO (delay-notice guardrail) | yes | [luna-decisions-vs-jev.md](experiments/luna-decisions-vs-jev.md) |
 
-## Replicate the demo in 3 commands
+## Replicate Luna vs Gemma in 3 commands
 
 ```sh
 git clone https://github.com/0-BSCode/llm-classifier-evals.git && cd llm-classifier-evals
 pnpm install --frozen-lockfile                       # Node 26 (.nvmrc), pnpm 12
 cp .env.example .env                                 # then put your OpenRouter key in .env
-pnpm eval run experiments/correspondence-demo.ts
+pnpm eval run experiments/correspondence-luna-vs-gemma.ts
 ```
 
 `run` verifies the dataset hash, prints a cost estimate and asks for confirmation, then classifies every item 3 times per model. It scores the run, writes `runs/<experiment>/<timestamp>/verdict.md`, and compares your verdict with the committed reference run:
@@ -30,7 +30,7 @@ pnpm eval run experiments/correspondence-demo.ts
 | run | verdict | accuracy delta [95% CI] | deciding rule |
 ```
 
-The demo costs about **$0.06** and takes about **15 minutes** (1,740 calls, measured on the reference run). The estimate printed before the run is based on the reference run's token usage. An interrupted run can be continued with `--resume runs/<experiment>/<timestamp>`.
+This experiment costs about **$0.06** and takes about **15 minutes** (1,740 calls, measured on the reference run). The estimate printed before the run is based on the reference run's token usage. An interrupted run can be continued with `--resume runs/<experiment>/<timestamp>`.
 
 ## Check the numbers without an API key
 
@@ -45,7 +45,7 @@ pnpm test
 
 ## How a verdict is decided
 
-Everything in `experiments/correspondence-demo.ts` is **pre-registered** before the run: models, pinned hosts, prompt, dataset hash, repeats, prices, margin and guardrails. Changing any of it makes a new experiment, and `compare` refuses to call that a replication.
+Everything in `experiments/correspondence-luna-vs-gemma.ts` is **pre-registered** before the run: models, pinned hosts, prompt, dataset hash, repeats, prices, margin and guardrails. Changing any of it makes a new experiment, and `compare` refuses to call that a replication.
 
 ```
 accuracy delta = candidate - incumbent, paired bootstrap 95% CI over items
@@ -72,9 +72,9 @@ Reruns reach the same verdict because:
 
 An experiment is one manifest file. You do not have to change code.
 
-1. Copy the demo manifest:
+1. Copy an existing manifest:
    ```sh
-   cp experiments/correspondence-demo.ts experiments/my-comparison.ts
+   cp experiments/correspondence-luna-vs-gemma.ts experiments/my-comparison.ts
    ```
 2. In the copy, change these fields:
    - `name`: a new name. The run goes to `runs/<name>/`.
@@ -91,7 +91,7 @@ An experiment is one manifest file. You do not have to change code.
 The manifest check stops the run if:
 - a model has no price in `prices`.
 - an arm does not pin exactly one provider.
-- a model is from the same vendor as `dataset.draftedBy`. The demo dataset was drafted by Claude, so you cannot use it to compare Claude models.
+- a model is from the same vendor as `dataset.draftedBy`. The correspondence dataset was drafted by Claude, so you cannot use it to compare Claude models.
 
 Do not set `temperature` if a model's host does not accept it.
 

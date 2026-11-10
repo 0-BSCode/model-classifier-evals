@@ -25,7 +25,7 @@ An earlier draft generated with a paid Gemini script was discarded for two reaso
 
 ## Pilot 1 and the difficulty revision
 
-**Pilot 1** used `experiments/correspondence-pilot.ts`: same models, hosts and prompt as the demo, k=1, 558 calls, $0.30. It ran against the 279-item version of this file (commit `f0b8f77`):
+**Pilot 1** used `experiments/correspondence-pilot.ts`: same models, hosts and prompt as the Luna vs Gemma experiment, k=1, 558 calls, $0.30. It ran against the 279-item version of this file (commit `f0b8f77`):
 
 | | gpt-6-luna | gemini-3.8-flash |
 |---|---|---|

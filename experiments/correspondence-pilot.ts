@@ -1,4 +1,4 @@
-import demo from './correspondence-demo.ts';
+import exp from './correspondence-luna-vs-gemma.ts';
 
 // Difficulty check (task 5.4): same arms, one repeat. Not a pre-registered experiment.
-export default { ...demo, name: 'correspondence-pilot', k: 1 };
+export default { ...exp, name: 'correspondence-pilot', k: 1 };
